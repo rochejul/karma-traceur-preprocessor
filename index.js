@@ -19,19 +19,18 @@ var createTraceurPreprocessor = function(args, config, logger, helper) {
   return function(content, file, done) {
     log.debug('Processing "%s".', file.originalPath);
     file.path = transformPath(file.originalPath);
-    var filename = file.originalPath;
-    var duplicatedOptions = helper.merge({ }, options);
-
+    var moduleName = file.originalPath;
     if (transformModuleName) {
       // Set the name of the module for this file
-      duplicatedOptions.moduleName = transformModuleName(file.originalPath, file.path);
+      moduleName = transformModuleName(file.originalPath, file.path);
     }
+    var extendedOptions = helper.merge({moduleName: moduleName}, options);
 
     var transpiledContent;
-    var compiler = new traceur.NodeCompiler(duplicatedOptions);
+    var compiler = new traceur.NodeCompiler(extendedOptions);
 
     try {
-      transpiledContent = compiler.compile(content, filename);
+      transpiledContent = compiler.compile(content, moduleName);
     } catch (e) {
       log.error(e);
       done(new Error('TRACEUR COMPILE ERROR\n', e.toString()));
